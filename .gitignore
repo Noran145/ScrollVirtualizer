@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# JetBrains IDEs
+.idea/
+
+# Visual Studio
+.vs/
+*.user
+*.suo

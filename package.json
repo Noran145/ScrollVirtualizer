@@ -1,0 +1,32 @@
+{
+  "name": "com.norandev.scrollvirtualizer",
+  "version": "1.0.0",
+  "displayName": "ScrollVirtualizer",
+  "description": "A virtualized scroll library that extends Unity's ScrollRect.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Noran145",
+    "email": "",
+    "url": "https://github.com/Noran145"
+  },
+  "keywords": [
+    "scroll",
+    "infinite-scroll",
+    "virtualization",
+    "ugui",
+    "ui",
+    "grid",
+    "recyclerview"
+  ],
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10"
+  },
+  "samples": [
+    {
+      "displayName": "ScrollVirtualizer Samples",
+      "description": "Includes BasicSample (simple vertical scroll without Context) and EventsSample (advanced usage with Context and event handling)",
+      "path": "Samples~"
+    }
+  ],
+  "license": "MIT"
+}

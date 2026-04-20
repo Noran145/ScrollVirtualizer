@@ -1,0 +1,22 @@
+{
+    "name": "NoranDev.ScrollVirtualizer",
+    "rootNamespace": "NoranDev.ScrollVirtualizer",
+    "references": [
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.cysharp.unitask",
+            "expression": "",
+            "define": "UNITASK_SUPPORT"
+        }
+    ],
+    "noEngineReferences": false
+}

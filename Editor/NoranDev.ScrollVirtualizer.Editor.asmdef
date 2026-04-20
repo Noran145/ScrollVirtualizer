@@ -1,0 +1,18 @@
+{
+    "name": "NoranDev.ScrollVirtualizer.Editor",
+    "rootNamespace": "NoranDev.ScrollVirtualizer.Editor",
+    "references": [
+        "NoranDev.ScrollVirtualizer"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
