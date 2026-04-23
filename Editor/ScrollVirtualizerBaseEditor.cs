@@ -36,12 +36,6 @@ namespace NoranDev.ScrollVirtualizer.Editor
             SerializedProperty useDynamicCellWidth = serializedObject.FindProperty("useDynamicCellWidth");
             SerializedProperty useDynamicCellHeight = serializedObject.FindProperty("useDynamicCellHeight");
 
-            SerializedProperty contentAlignment = serializedObject.FindProperty("verticalContentAlignment");
-            if (contentAlignment == null)
-            {
-                contentAlignment = serializedObject.FindProperty("horizontalContentAlignment");
-            }
-
             SerializedProperty constraintProp = serializedObject.FindProperty("constraint");
 
             while (iterator.NextVisible(enterChildren))
@@ -136,7 +130,17 @@ namespace NoranDev.ScrollVirtualizer.Editor
 
                 if (iterator.name == "verticalContentAlignment" || iterator.name == "horizontalContentAlignment")
                 {
-                    continue;
+                    if (serializedObject.FindProperty("spacingX") != null)
+                    {
+                        continue;
+                    }
+
+                    bool isDynamicWidth = useDynamicCellWidth != null && useDynamicCellWidth.boolValue;
+                    bool isDynamicHeight = useDynamicCellHeight != null && useDynamicCellHeight.boolValue;
+                    if (isDynamicWidth || isDynamicHeight)
+                    {
+                        continue;
+                    }
                 }
 
                 if (iterator.name == "spacing")
@@ -144,17 +148,6 @@ namespace NoranDev.ScrollVirtualizer.Editor
                     if (serializedObject.FindProperty("spacingX") != null)
                     {
                         continue;
-                    }
-
-                    if (contentAlignment != null)
-                    {
-                        bool isDynamicWidth = useDynamicCellWidth != null && useDynamicCellWidth.boolValue;
-                        bool isDynamicHeight = useDynamicCellHeight != null && useDynamicCellHeight.boolValue;
-
-                        if (!isDynamicWidth && !isDynamicHeight)
-                        {
-                            EditorGUILayout.PropertyField(contentAlignment);
-                        }
                     }
                 }
 
