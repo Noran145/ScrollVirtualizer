@@ -36,7 +36,7 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected override float GetCurrentScrollPosition()
         {
-            return Content != null ? Content.anchoredPosition.x : 0f;
+            return Content != null ? -Content.anchoredPosition.x : 0f;
         }
 
         /// <summary>
@@ -310,7 +310,7 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected override float GetCurrentScrollPosition()
         {
-            return Content != null ? Content.anchoredPosition.x : 0f;
+            return Content != null ? -Content.anchoredPosition.x : 0f;
         }
 
         /// <summary>
