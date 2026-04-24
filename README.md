@@ -345,17 +345,14 @@ namespace YourNamespace
 | `ScrollToIndex` | `int index` | Scroll immediately to the specified index. |
 | `ScrollTo` | `int index`, `float duration`, `Ease ease`, `Action onComplete = null` | Scroll to the specified index with animation. `Ease` is a ScrollVirtualizer enum (`NoranDev.ScrollVirtualizer.Ease`) with options like Linear, InQuad, OutQuad, InOutQuad, etc. |
 
-### ScrollVirtualizer Properties
+### ScrollVirtualizer Properties (Protected)
+
+The following properties are available in subclasses:
 
 | Property | Type | Description |
 |----------|------|-------------|
 | `ScrollPosition` | `float` | Current scroll position in pixels. |
 | `MaxScrollPosition` | `float` | Maximum scroll position in pixels. |
-
-### ScrollVirtualizer Scroll Position Methods
-
-| API Name | Parameters | Description |
-|----------|------------|-------------|
 | `SetScrollPosition` | `float position` | Set the scroll position directly in pixels. The value is clamped between 0 and `MaxScrollPosition`. |
 
 ### ScrollVirtualizerCell Methods

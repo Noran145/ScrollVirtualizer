@@ -170,17 +170,17 @@ namespace NoranDev.ScrollVirtualizer
         /// <summary>
         /// Current scroll position
         /// </summary>
-        public float ScrollPosition => GetCurrentScrollPosition();
+        protected float ScrollPosition => GetCurrentScrollPosition();
 
         /// <summary>
         /// Maximum scroll position
         /// </summary>
-        public float MaxScrollPosition => GetMaxScrollPosition();
+        protected float MaxScrollPosition => GetMaxScrollPosition();
 
         /// <summary>
         /// Set scroll position directly in pixels
         /// </summary>
-        public void SetScrollPosition(float position)
+        protected void SetScrollPosition(float position)
         {
             if (content == null) return;
 
