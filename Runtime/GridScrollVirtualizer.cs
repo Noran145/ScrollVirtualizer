@@ -95,7 +95,7 @@ namespace NoranDev.ScrollVirtualizer
 
             var isVerticalScroll = constraint is GridConstraint.FixedColumnCount or GridConstraint.Flexible;
 
-            return isVerticalScroll ? Content.anchoredPosition.y : Content.anchoredPosition.x;
+            return isVerticalScroll ? Content.anchoredPosition.y : -Content.anchoredPosition.x;
         }
 
         /// <summary>
@@ -798,7 +798,7 @@ namespace NoranDev.ScrollVirtualizer
 
             var isVerticalScroll = constraint is GridConstraint.FixedColumnCount or GridConstraint.Flexible;
 
-            return isVerticalScroll ? Content.anchoredPosition.y : Content.anchoredPosition.x;
+            return isVerticalScroll ? Content.anchoredPosition.y : -Content.anchoredPosition.x;
         }
 
         /// <summary>

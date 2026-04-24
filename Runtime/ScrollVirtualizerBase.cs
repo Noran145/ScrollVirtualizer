@@ -168,6 +168,35 @@ namespace NoranDev.ScrollVirtualizer
         protected int MaxRecycleCount => maxRecycleCount;
 
         /// <summary>
+        /// Current scroll position
+        /// </summary>
+        public float ScrollPosition => GetCurrentScrollPosition();
+
+        /// <summary>
+        /// Maximum scroll position
+        /// </summary>
+        public float MaxScrollPosition => GetMaxScrollPosition();
+
+        /// <summary>
+        /// Set scroll position directly in pixels
+        /// </summary>
+        public void SetScrollPosition(float position)
+        {
+            if (content == null) return;
+
+            var clamped = Mathf.Clamp(position, 0f, GetMaxScrollPosition());
+
+            var newPosition = ScrollDirection == ScrollDirection.Vertical
+                ? new Vector2(content.anchoredPosition.x, clamped)
+                : new Vector2(-clamped, content.anchoredPosition.y);
+
+            content.anchoredPosition = newPosition;
+            _previousContentPosition = newPosition;
+
+            UpdateVisibleCells();
+        }
+
+        /// <summary>
         /// Event when a cell button is clicked
         /// </summary>
         public event Action<TData> CellButtonClicked;
