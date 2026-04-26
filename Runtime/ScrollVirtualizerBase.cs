@@ -193,7 +193,7 @@ namespace NoranDev.ScrollVirtualizer
             content.anchoredPosition = newPosition;
             _previousContentPosition = newPosition;
 
-            UpdateVisibleCells();
+            UpdateAssignedCells();
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace NoranDev.ScrollVirtualizer
             content.anchoredPosition = targetPosition;
             _previousContentPosition = targetPosition;
 
-            UpdateVisibleCells();
+            UpdateAssignedCells();
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace NoranDev.ScrollVirtualizer
             content.anchoredPosition = targetPosition;
             _previousContentPosition = targetPosition;
 
-            UpdateVisibleCells();
+            UpdateAssignedCells();
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace NoranDev.ScrollVirtualizer
                     var easedT = EasingFunction.Interpolate(t, ease);
 
                     content.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, easedT);
-                    UpdateVisibleCells();
+                    UpdateAssignedCells();
 
                     await TaskType.Yield(cancellationToken);
                 }
@@ -462,7 +462,7 @@ namespace NoranDev.ScrollVirtualizer
                 content.anchoredPosition = targetPosition;
                 _previousContentPosition = targetPosition;
 
-                UpdateVisibleCells();
+                UpdateAssignedCells();
 
                 ScrollCompleted?.Invoke();
                 onComplete?.Invoke();
@@ -496,7 +496,8 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         /// <param name="items">Data list</param>
         /// <param name="resetScrollPosition">Reset scroll position to zero</param>
-        public void UpdateContents(IReadOnlyList<TData> items, bool resetScrollPosition = true)
+        /// <param name="refreshVisibleCells">Refresh currently visible cells with new data</param>
+        public void UpdateContents(IReadOnlyList<TData> items, bool resetScrollPosition = true, bool refreshVisibleCells = true)
         {
             _items = new List<TData>(items);
             SetItemCount(_items.Count);
@@ -508,13 +509,33 @@ namespace NoranDev.ScrollVirtualizer
                 _previousContentPosition = content.anchoredPosition;
             }
 
-            UpdateVisibleCells();
+            UpdateAssignedCells();
             Canvas.ForceUpdateCanvases();
 
             if (resetScrollPosition)
             {
                 ScrollRect.StopMovement();
                 ScrollRect.velocity = Vector2.zero;
+            }
+
+            if (refreshVisibleCells)
+            {
+                RefreshVisibleCells();
+            }
+        }
+
+        /// <summary>
+        /// Refresh all currently visible cells with current data
+        /// </summary>
+        public void RefreshVisibleCells()
+        {
+            for (var i = 0; i < _cells.Count; i++)
+            {
+                var cell = _cells[i];
+                if (cell.gameObject.activeSelf && cell.Index >= 0 && cell.Index < _items.Count)
+                {
+                    UpdateCell(cell.Index, _items[cell.Index]);
+                }
             }
         }
 
@@ -580,7 +601,7 @@ namespace NoranDev.ScrollVirtualizer
                 if (cell.gameObject.activeSelf && cell.Index == index)
                 {
                     cell.Data = data;
-                    OnUpdateCell(cell, data);
+                    cell.UpdateCellInternal(data);
                     return;
                 }
             }
@@ -1026,7 +1047,7 @@ namespace NoranDev.ScrollVirtualizer
                     : ScrollRect.MovementType.Clamped;
             }
 
-            UpdateVisibleCells();
+            UpdateAssignedCells();
         }
 
         /// <summary>
@@ -1079,9 +1100,9 @@ namespace NoranDev.ScrollVirtualizer
         }
 
         /// <summary>
-        /// Update cells to display
+        /// Assign cells to display based on visible range
         /// </summary>
-        private void UpdateVisibleCells()
+        private void UpdateAssignedCells()
         {
             if (_itemCount == 0 || _cells.Count == 0)
             {
@@ -1334,7 +1355,7 @@ namespace NoranDev.ScrollVirtualizer
 
             if (currentPosition != _previousContentPosition)
             {
-                UpdateVisibleCells();
+                UpdateAssignedCells();
                 _previousContentPosition = currentPosition;
             }
         }

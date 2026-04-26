@@ -107,6 +107,9 @@ scroller.UpdateContents(newItemList);
 // UpdateContents - Update the list (maintain scroll position)
 scroller.UpdateContents(newItemList, resetScrollPosition: false);
 
+// UpdateContents - Update the list without refreshing visible cells
+scroller.UpdateContents(newItemList, refreshVisibleCells: false);
+
 // AddContents - Add items (append to end)
 scroller.AddContents(additionalItems);
 
@@ -338,7 +341,7 @@ namespace YourNamespace
 | API Name | Parameters | Description |
 |----------|------------|-------------|
 | `InitializeContents` | `IReadOnlyList<TData> items` | Initialize the data list. Use when setting data for the first time. |
-| `UpdateContents` | `IReadOnlyList<TData> items`, `bool resetScrollPosition = true` | Update the data list. If resetScrollPosition is true, reset scroll position to 0; if false, maintain current position. |
+| `UpdateContents` | `IReadOnlyList<TData> items`, `bool resetScrollPosition = true`, `bool refreshVisibleCells = true` | Update the data list. If resetScrollPosition is true, reset scroll position to 0; if false, maintain current position. If refreshVisibleCells is true, refresh currently visible cells with the new data. |
 | `AddContents` | `IReadOnlyList<TData> items`, `bool insertAtStart = false`, `Action onComplete = null` | Add items. If insertAtStart is true, insert at the beginning; if false, append at the end. onComplete is a callback on completion. |
 | `ClearContents` | - | Clear all data and reset state. Releases object references. |
 | `JumpTo` | `int index = 0` | Jump immediately to the specified index. |
@@ -387,7 +390,7 @@ Both Context and non-Context versions use the same method names (`UpdateCell` an
 |----------|------|-------------|
 | `CellButtonClicked` | `Action<TData>` | Fired when the button assigned to the cell's default `button` field is clicked. Argument: data of the clicked cell. |
 | `CellTouched` | `Action<TData>` | Fired when a cell is touched. If a button is assigned, this event will not fire and `CellButtonClicked` will fire instead. Argument: data of the touched cell. |
-| `ScrollCompleted` | `Action` | Fired when scroll animation completes. Only triggered by `ScrollToIndexAnimated`. Not fired by `ScrollToIndex` or `JumpToIndex`. |
+| `ScrollCompleted` | `Action` | Fired when scroll animation completes. Only triggered by `ScrollTo`. Not fired by `ScrollToIndex` or `JumpTo`. |
 | `ScrollPullReleased` | `Action<PullDirection>` | Fired when pulled and released (after threshold exceeded). Argument: PullDirection.Start (top/left) or PullDirection.End (bottom/right). |
 | `ElasticPullStarted` | `Action<PullDirection>` | Fired when elastic pull starts (drag begins at edge). Argument: PullDirection.Start (top/left) or PullDirection.End (bottom/right). |
 | `ElasticPullReleased` | `Action<PullDirection>` | Fired when elastic pull is released (content returns to edge). Argument: PullDirection.Start (top/left) or PullDirection.End (bottom/right). |
