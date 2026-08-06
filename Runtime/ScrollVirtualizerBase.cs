@@ -1445,6 +1445,8 @@ namespace NoranDev.ScrollVirtualizer
     public abstract class ScrollVirtualizerBaseWithContext<TCell, TData, TContext> : ScrollVirtualizerBase<TCell, TData>
         where TCell : ScrollVirtualizerCellWithContext<TData, TContext>
     {
+        private bool _isContextCreated;
+
         /// <summary>
         /// Context referenced by the cell
         /// </summary>
@@ -1460,7 +1462,21 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected virtual void Start()
         {
+            EnsureContextCreated();
+        }
+
+        /// <summary>
+        /// Create context if not created yet (InitializeContents may be called before Start)
+        /// </summary>
+        private void EnsureContextCreated()
+        {
+            if (_isContextCreated)
+            {
+                return;
+            }
+
             Context = CreateContext();
+            _isContextCreated = true;
         }
 
         /// <summary>
@@ -1468,6 +1484,8 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected override void SetupCell(TCell cell, int index)
         {
+            EnsureContextCreated();
+
             if (cell != null && Context != null)
             {
                 cell.Context = Context;
