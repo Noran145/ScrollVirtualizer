@@ -313,8 +313,7 @@ namespace NoranDev.ScrollVirtualizer
                 {
                     if (index < Items.Count)
                     {
-                        cell.Data = Items[index];
-                        cell.UpdateCellInternal(Items[index]);
+                        ApplyCellData(cell, Items[index]);
                     }
                     break;
                 }
@@ -604,8 +603,7 @@ namespace NoranDev.ScrollVirtualizer
                 var cell = _cells[i];
                 if (cell.gameObject.activeSelf && cell.Index == index)
                 {
-                    cell.Data = data;
-                    cell.UpdateCellInternal(data);
+                    ApplyCellData(cell, data);
                     return;
                 }
             }
@@ -1187,42 +1185,52 @@ namespace NoranDev.ScrollVirtualizer
 
             if (Items != null && index >= 0 && index < Items.Count)
             {
-                cell.Data = Items[index];
+                ApplyCellData(cell, Items[index]);
+            }
+        }
 
-                switch (cellUpdateMode)
-                {
-                    case CellUpdateMode.SyncOnly:
-                        cell.UpdateCellInternal(Items[index]);
-                        break;
+        /// <summary>
+        /// Apply data to a cell according to the cell update mode (cancels the cell's in-flight async update first)
+        /// </summary>
+        private void ApplyCellData(TCell cell, TData data)
+        {
+            CancelCellUpdate(cell);
 
-                    case CellUpdateMode.AsyncOnly:
-                        {
-                            var cts = new CancellationTokenSource();
-                            _cellCts[cell] = cts;
-                            _ = UpdateCellAsync(cell, Items[index], cts.Token);
-                        }
-                        break;
+            cell.Data = data;
 
-                    case CellUpdateMode.Both:
-                        cell.UpdateCellInternal(Items[index]);
-                        {
-                            var cts = new CancellationTokenSource();
-                            _cellCts[cell] = cts;
-                            _ = UpdateCellAsync(cell, Items[index], cts.Token);
-                        }
-                        break;
-                }
+            switch (cellUpdateMode)
+            {
+                case CellUpdateMode.SyncOnly:
+                    cell.UpdateCellInternal(data);
+                    break;
+
+                case CellUpdateMode.AsyncOnly:
+                    {
+                        var cts = new CancellationTokenSource();
+                        _cellCts[cell] = cts;
+                        _ = UpdateCellAsync(cell, data, cts);
+                    }
+                    break;
+
+                case CellUpdateMode.Both:
+                    cell.UpdateCellInternal(data);
+                    {
+                        var cts = new CancellationTokenSource();
+                        _cellCts[cell] = cts;
+                        _ = UpdateCellAsync(cell, data, cts);
+                    }
+                    break;
             }
         }
 
         /// <summary>
         /// Update cell asynchronously
         /// </summary>
-        private async TaskType UpdateCellAsync(TCell cell, TData data, CancellationToken ct)
+        private async TaskType UpdateCellAsync(TCell cell, TData data, CancellationTokenSource cts)
         {
             try
             {
-                await cell.UpdateCellAsyncInternal(data, ct);
+                await cell.UpdateCellAsyncInternal(data, cts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -1233,7 +1241,7 @@ namespace NoranDev.ScrollVirtualizer
             }
             finally
             {
-                RemoveCellToken(cell);
+                RemoveCellToken(cell, cts);
             }
         }
 
@@ -1257,11 +1265,11 @@ namespace NoranDev.ScrollVirtualizer
         }
 
         /// <summary>
-        /// Remove cell token
+        /// Remove cell token (only when the entry still belongs to the caller's update)
         /// </summary>
-        private void RemoveCellToken(TCell cell)
+        private void RemoveCellToken(TCell cell, CancellationTokenSource cts)
         {
-            if (_cellCts.TryGetValue(cell, out var cts))
+            if (_cellCts.TryGetValue(cell, out var current) && current == cts)
             {
                 try
                 {
