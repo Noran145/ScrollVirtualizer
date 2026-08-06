@@ -1,6 +1,6 @@
 {
   "name": "com.norandev.scrollvirtualizer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "displayName": "ScrollVirtualizer",
   "description": "A virtualized scroll library that extends Unity's ScrollRect.",
   "unity": "6000.0",
