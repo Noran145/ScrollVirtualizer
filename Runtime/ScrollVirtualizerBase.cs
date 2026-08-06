@@ -313,8 +313,7 @@ namespace NoranDev.ScrollVirtualizer
                 {
                     if (index < Items.Count)
                     {
-                        cell.Data = Items[index];
-                        cell.UpdateCellInternal(Items[index]);
+                        ApplyCellData(cell, Items[index]);
                     }
                     break;
                 }
@@ -352,12 +351,15 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         private void StopScrollAnimation()
         {
-            if (_scrollCts != null)
+            var cts = _scrollCts;
+            if (cts == null)
             {
-                _scrollCts.Cancel();
-                _scrollCts.Dispose();
-                _scrollCts = null;
+                return;
             }
+
+            _scrollCts = null;
+            cts.Cancel();
+            cts.Dispose();
         }
 
         /// <summary>
@@ -423,14 +425,15 @@ namespace NoranDev.ScrollVirtualizer
             StopScrollAnimation();
 
             _scrollCts = new CancellationTokenSource();
-            ScrollToAsync(validatedIndex, duration, ease, onComplete, _scrollCts.Token).Forget();
+            ScrollToAsync(validatedIndex, duration, ease, onComplete, _scrollCts).Forget();
         }
 
         /// <summary>
         /// Run scroll animation asynchronously
         /// </summary>
-        private async TaskType ScrollToAsync(int index, float duration, Ease ease, Action onComplete, CancellationToken cancellationToken)
+        private async TaskType ScrollToAsync(int index, float duration, Ease ease, Action onComplete, CancellationTokenSource cts)
         {
+            var cancellationToken = cts.Token;
             var startPosition = content?.anchoredPosition ?? Vector2.zero;
             var targetPosition = CalculateScrollPosition(index);
             var elapsedTime = 0f;
@@ -472,10 +475,10 @@ namespace NoranDev.ScrollVirtualizer
             }
             finally
             {
-                if (_scrollCts != null)
+                if (_scrollCts == cts)
                 {
-                    _scrollCts.Dispose();
                     _scrollCts = null;
+                    cts.Dispose();
                 }
             }
         }
@@ -600,8 +603,7 @@ namespace NoranDev.ScrollVirtualizer
                 var cell = _cells[i];
                 if (cell.gameObject.activeSelf && cell.Index == index)
                 {
-                    cell.Data = data;
-                    cell.UpdateCellInternal(data);
+                    ApplyCellData(cell, data);
                     return;
                 }
             }
@@ -813,16 +815,17 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         private void CancelAllCellUpdates()
         {
-            if (_cellCts.Count == 0) return;
+            var count = _cellCts.Count;
+            if (count == 0) return;
 
-            if (_tempCellArray == null || _tempCellArray.Length < _cellCts.Count)
+            if (_tempCellArray == null || _tempCellArray.Length < count)
             {
-                _tempCellArray = new TCell[_cellCts.Count];
+                _tempCellArray = new TCell[count];
             }
 
             _cellCts.Keys.CopyTo(_tempCellArray, 0);
 
-            for (var i = 0; i < _cellCts.Count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (_cellCts.TryGetValue(_tempCellArray[i], out var cts))
                 {
@@ -1183,42 +1186,52 @@ namespace NoranDev.ScrollVirtualizer
 
             if (Items != null && index >= 0 && index < Items.Count)
             {
-                cell.Data = Items[index];
+                ApplyCellData(cell, Items[index]);
+            }
+        }
 
-                switch (cellUpdateMode)
-                {
-                    case CellUpdateMode.SyncOnly:
-                        cell.UpdateCellInternal(Items[index]);
-                        break;
+        /// <summary>
+        /// Apply data to a cell according to the cell update mode (cancels the cell's in-flight async update first)
+        /// </summary>
+        private void ApplyCellData(TCell cell, TData data)
+        {
+            CancelCellUpdate(cell);
 
-                    case CellUpdateMode.AsyncOnly:
-                        {
-                            var cts = new CancellationTokenSource();
-                            _cellCts[cell] = cts;
-                            _ = UpdateCellAsync(cell, Items[index], cts.Token);
-                        }
-                        break;
+            cell.Data = data;
 
-                    case CellUpdateMode.Both:
-                        cell.UpdateCellInternal(Items[index]);
-                        {
-                            var cts = new CancellationTokenSource();
-                            _cellCts[cell] = cts;
-                            _ = UpdateCellAsync(cell, Items[index], cts.Token);
-                        }
-                        break;
-                }
+            switch (cellUpdateMode)
+            {
+                case CellUpdateMode.SyncOnly:
+                    cell.UpdateCellInternal(data);
+                    break;
+
+                case CellUpdateMode.AsyncOnly:
+                    {
+                        var cts = new CancellationTokenSource();
+                        _cellCts[cell] = cts;
+                        _ = UpdateCellAsync(cell, data, cts);
+                    }
+                    break;
+
+                case CellUpdateMode.Both:
+                    cell.UpdateCellInternal(data);
+                    {
+                        var cts = new CancellationTokenSource();
+                        _cellCts[cell] = cts;
+                        _ = UpdateCellAsync(cell, data, cts);
+                    }
+                    break;
             }
         }
 
         /// <summary>
         /// Update cell asynchronously
         /// </summary>
-        private async TaskType UpdateCellAsync(TCell cell, TData data, CancellationToken ct)
+        private async TaskType UpdateCellAsync(TCell cell, TData data, CancellationTokenSource cts)
         {
             try
             {
-                await cell.UpdateCellAsyncInternal(data, ct);
+                await cell.UpdateCellAsyncInternal(data, cts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -1229,7 +1242,7 @@ namespace NoranDev.ScrollVirtualizer
             }
             finally
             {
-                RemoveCellToken(cell);
+                RemoveCellToken(cell, cts);
             }
         }
 
@@ -1253,11 +1266,11 @@ namespace NoranDev.ScrollVirtualizer
         }
 
         /// <summary>
-        /// Remove cell token
+        /// Remove cell token (only when the entry still belongs to the caller's update)
         /// </summary>
-        private void RemoveCellToken(TCell cell)
+        private void RemoveCellToken(TCell cell, CancellationTokenSource cts)
         {
-            if (_cellCts.TryGetValue(cell, out var cts))
+            if (_cellCts.TryGetValue(cell, out var current) && current == cts)
             {
                 try
                 {
@@ -1445,6 +1458,8 @@ namespace NoranDev.ScrollVirtualizer
     public abstract class ScrollVirtualizerBaseWithContext<TCell, TData, TContext> : ScrollVirtualizerBase<TCell, TData>
         where TCell : ScrollVirtualizerCellWithContext<TData, TContext>
     {
+        private bool _isContextCreated;
+
         /// <summary>
         /// Context referenced by the cell
         /// </summary>
@@ -1460,7 +1475,21 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected virtual void Start()
         {
+            EnsureContextCreated();
+        }
+
+        /// <summary>
+        /// Create context if not created yet (InitializeContents may be called before Start)
+        /// </summary>
+        private void EnsureContextCreated()
+        {
+            if (_isContextCreated)
+            {
+                return;
+            }
+
             Context = CreateContext();
+            _isContextCreated = true;
         }
 
         /// <summary>
@@ -1468,6 +1497,8 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         protected override void SetupCell(TCell cell, int index)
         {
+            EnsureContextCreated();
+
             if (cell != null && Context != null)
             {
                 cell.Context = Context;
