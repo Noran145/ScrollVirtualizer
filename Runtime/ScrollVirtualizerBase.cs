@@ -815,16 +815,17 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         private void CancelAllCellUpdates()
         {
-            if (_cellCts.Count == 0) return;
+            var count = _cellCts.Count;
+            if (count == 0) return;
 
-            if (_tempCellArray == null || _tempCellArray.Length < _cellCts.Count)
+            if (_tempCellArray == null || _tempCellArray.Length < count)
             {
-                _tempCellArray = new TCell[_cellCts.Count];
+                _tempCellArray = new TCell[count];
             }
 
             _cellCts.Keys.CopyTo(_tempCellArray, 0);
 
-            for (var i = 0; i < _cellCts.Count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (_cellCts.TryGetValue(_tempCellArray[i], out var cts))
                 {
