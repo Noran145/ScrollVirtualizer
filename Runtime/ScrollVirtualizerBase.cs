@@ -352,12 +352,15 @@ namespace NoranDev.ScrollVirtualizer
         /// </summary>
         private void StopScrollAnimation()
         {
-            if (_scrollCts != null)
+            var cts = _scrollCts;
+            if (cts == null)
             {
-                _scrollCts.Cancel();
-                _scrollCts.Dispose();
-                _scrollCts = null;
+                return;
             }
+
+            _scrollCts = null;
+            cts.Cancel();
+            cts.Dispose();
         }
 
         /// <summary>
@@ -423,14 +426,15 @@ namespace NoranDev.ScrollVirtualizer
             StopScrollAnimation();
 
             _scrollCts = new CancellationTokenSource();
-            ScrollToAsync(validatedIndex, duration, ease, onComplete, _scrollCts.Token).Forget();
+            ScrollToAsync(validatedIndex, duration, ease, onComplete, _scrollCts).Forget();
         }
 
         /// <summary>
         /// Run scroll animation asynchronously
         /// </summary>
-        private async TaskType ScrollToAsync(int index, float duration, Ease ease, Action onComplete, CancellationToken cancellationToken)
+        private async TaskType ScrollToAsync(int index, float duration, Ease ease, Action onComplete, CancellationTokenSource cts)
         {
+            var cancellationToken = cts.Token;
             var startPosition = content?.anchoredPosition ?? Vector2.zero;
             var targetPosition = CalculateScrollPosition(index);
             var elapsedTime = 0f;
@@ -472,10 +476,10 @@ namespace NoranDev.ScrollVirtualizer
             }
             finally
             {
-                if (_scrollCts != null)
+                if (_scrollCts == cts)
                 {
-                    _scrollCts.Dispose();
                     _scrollCts = null;
+                    cts.Dispose();
                 }
             }
         }
