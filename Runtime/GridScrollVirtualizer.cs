@@ -26,6 +26,7 @@ namespace NoranDev.ScrollVirtualizer
         [SerializeField] private GridStartCorner startCorner = GridStartCorner.UpperLeft;
         [SerializeField] private GridAxis startAxis = GridAxis.Horizontal;
         [SerializeField] private GridChildAlignment childAlignment = GridChildAlignment.UpperLeft;
+        [SerializeField] private bool alignIncompleteLine = false;
         [SerializeField] private GridConstraint constraint = GridConstraint.FixedColumnCount;
         [SerializeField] private int constraintCount = 3;
 
@@ -235,7 +236,86 @@ namespace NoranDev.ScrollVirtualizer
             x += alignmentOffset.x;
             y += alignmentOffset.y;
 
+            var incompleteLineOffset = GetIncompleteLineOffset(index, columnCount, rowCount);
+            x += incompleteLineOffset.x;
+            y += incompleteLineOffset.y;
+
             return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Get offset that applies childAlignment to the row/column holding fewer cells than the constraint (alignIncompleteLine)
+        /// </summary>
+        private Vector2 GetIncompleteLineOffset(int index, int columnCount, int rowCount)
+        {
+            if (!alignIncompleteLine)
+            {
+                return Vector2.zero;
+            }
+
+            var isVerticalScroll = constraint is GridConstraint.FixedColumnCount or GridConstraint.Flexible;
+            if (isVerticalScroll)
+            {
+                var cellsInRow = Mathf.Min(columnCount, ItemCount - (index / columnCount) * columnCount);
+                var missingWidth = (columnCount - cellsInRow) * (cellWidth + spacingX);
+                if (missingWidth <= 0f)
+                {
+                    return Vector2.zero;
+                }
+
+                var fillsFromRight = startCorner is GridStartCorner.UpperRight or GridStartCorner.LowerRight;
+                return new Vector2(GetIncompleteRowShift(missingWidth, fillsFromRight), 0f);
+            }
+
+            var cellsInColumn = Mathf.Min(rowCount, ItemCount - (index / rowCount) * rowCount);
+            var missingHeight = (rowCount - cellsInColumn) * (cellHeight + spacingY);
+            if (missingHeight <= 0f)
+            {
+                return Vector2.zero;
+            }
+
+            var fillsFromBottom = startCorner is GridStartCorner.LowerLeft or GridStartCorner.LowerRight;
+            return new Vector2(0f, GetIncompleteColumnShift(missingHeight, fillsFromBottom));
+        }
+
+        /// <summary>
+        /// Get horizontal shift for an incomplete row
+        /// </summary>
+        private float GetIncompleteRowShift(float missingWidth, bool fillsFromRight)
+        {
+            switch (childAlignment)
+            {
+                case GridChildAlignment.UpperCenter:
+                case GridChildAlignment.MiddleCenter:
+                case GridChildAlignment.LowerCenter:
+                    return fillsFromRight ? -missingWidth / 2f : missingWidth / 2f;
+                case GridChildAlignment.UpperRight:
+                case GridChildAlignment.MiddleRight:
+                case GridChildAlignment.LowerRight:
+                    return fillsFromRight ? 0f : missingWidth;
+                default:
+                    return fillsFromRight ? -missingWidth : 0f;
+            }
+        }
+
+        /// <summary>
+        /// Get vertical shift for an incomplete column
+        /// </summary>
+        private float GetIncompleteColumnShift(float missingHeight, bool fillsFromBottom)
+        {
+            switch (childAlignment)
+            {
+                case GridChildAlignment.MiddleLeft:
+                case GridChildAlignment.MiddleCenter:
+                case GridChildAlignment.MiddleRight:
+                    return fillsFromBottom ? missingHeight / 2f : -missingHeight / 2f;
+                case GridChildAlignment.LowerLeft:
+                case GridChildAlignment.LowerCenter:
+                case GridChildAlignment.LowerRight:
+                    return fillsFromBottom ? 0f : -missingHeight;
+                default:
+                    return fillsFromBottom ? missingHeight : 0f;
+            }
         }
 
         /// <summary>
@@ -729,6 +809,7 @@ namespace NoranDev.ScrollVirtualizer
         [SerializeField] private GridStartCorner startCorner = GridStartCorner.UpperLeft;
         [SerializeField] private GridAxis startAxis = GridAxis.Horizontal;
         [SerializeField] private GridChildAlignment childAlignment = GridChildAlignment.UpperLeft;
+        [SerializeField] private bool alignIncompleteLine = false;
         [SerializeField] private GridConstraint constraint = GridConstraint.FixedColumnCount;
         [SerializeField] private int constraintCount = 3;
 
@@ -938,7 +1019,86 @@ namespace NoranDev.ScrollVirtualizer
             x += alignmentOffset.x;
             y += alignmentOffset.y;
 
+            var incompleteLineOffset = GetIncompleteLineOffset(index, columnCount, rowCount);
+            x += incompleteLineOffset.x;
+            y += incompleteLineOffset.y;
+
             return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Get offset that applies childAlignment to the row/column holding fewer cells than the constraint (alignIncompleteLine)
+        /// </summary>
+        private Vector2 GetIncompleteLineOffset(int index, int columnCount, int rowCount)
+        {
+            if (!alignIncompleteLine)
+            {
+                return Vector2.zero;
+            }
+
+            var isVerticalScroll = constraint is GridConstraint.FixedColumnCount or GridConstraint.Flexible;
+            if (isVerticalScroll)
+            {
+                var cellsInRow = Mathf.Min(columnCount, ItemCount - (index / columnCount) * columnCount);
+                var missingWidth = (columnCount - cellsInRow) * (cellWidth + spacingX);
+                if (missingWidth <= 0f)
+                {
+                    return Vector2.zero;
+                }
+
+                var fillsFromRight = startCorner is GridStartCorner.UpperRight or GridStartCorner.LowerRight;
+                return new Vector2(GetIncompleteRowShift(missingWidth, fillsFromRight), 0f);
+            }
+
+            var cellsInColumn = Mathf.Min(rowCount, ItemCount - (index / rowCount) * rowCount);
+            var missingHeight = (rowCount - cellsInColumn) * (cellHeight + spacingY);
+            if (missingHeight <= 0f)
+            {
+                return Vector2.zero;
+            }
+
+            var fillsFromBottom = startCorner is GridStartCorner.LowerLeft or GridStartCorner.LowerRight;
+            return new Vector2(0f, GetIncompleteColumnShift(missingHeight, fillsFromBottom));
+        }
+
+        /// <summary>
+        /// Get horizontal shift for an incomplete row
+        /// </summary>
+        private float GetIncompleteRowShift(float missingWidth, bool fillsFromRight)
+        {
+            switch (childAlignment)
+            {
+                case GridChildAlignment.UpperCenter:
+                case GridChildAlignment.MiddleCenter:
+                case GridChildAlignment.LowerCenter:
+                    return fillsFromRight ? -missingWidth / 2f : missingWidth / 2f;
+                case GridChildAlignment.UpperRight:
+                case GridChildAlignment.MiddleRight:
+                case GridChildAlignment.LowerRight:
+                    return fillsFromRight ? 0f : missingWidth;
+                default:
+                    return fillsFromRight ? -missingWidth : 0f;
+            }
+        }
+
+        /// <summary>
+        /// Get vertical shift for an incomplete column
+        /// </summary>
+        private float GetIncompleteColumnShift(float missingHeight, bool fillsFromBottom)
+        {
+            switch (childAlignment)
+            {
+                case GridChildAlignment.MiddleLeft:
+                case GridChildAlignment.MiddleCenter:
+                case GridChildAlignment.MiddleRight:
+                    return fillsFromBottom ? missingHeight / 2f : -missingHeight / 2f;
+                case GridChildAlignment.LowerLeft:
+                case GridChildAlignment.LowerCenter:
+                case GridChildAlignment.LowerRight:
+                    return fillsFromBottom ? 0f : -missingHeight;
+                default:
+                    return fillsFromBottom ? missingHeight : 0f;
+            }
         }
 
         /// <summary>
